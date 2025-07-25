@@ -1,0 +1,22 @@
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Background -->
+  <rect x="2" y="2" width="56" height="56" rx="8" ry="8" fill="#A0434C"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="30" cy="30" r="22" fill="#F4D7DA"/>
+  
+  <!-- Hanger Icon -->
+  <g stroke="#A0434C" stroke-width="1.5" fill="none">
+    <!-- Hanger Hook -->
+    <path d="M30 18 Q30 16, 32 16 Q34 16, 34 18"/>
+    
+    <!-- Hanger Body -->
+    <path d="M24 26 Q30 24, 36 26"/>
+    <line x1="24" y1="26" x2="24" y2="30"/>
+    <line x1="36" y1="26" x2="36" y2="30"/>
+    <line x1="24" y1="30" x2="36" y2="30"/>
+    
+    <!-- Hook Connection -->
+    <line x1="32" y1="18" x2="30" y2="24"/>
+  </g>
+</svg>

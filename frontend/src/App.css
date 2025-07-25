@@ -1,0 +1,229 @@
+/* Global styles for the laundry management application */
+
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Import responsive utilities */
+@import './styles/responsive.css';
+
+/* TailwindCSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: #2d3748;
+  background-color: #f7fafc;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c2c2c2;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #979797;
+}
+
+/* Focus styles for accessibility */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #0099cc;
+  outline-offset: 2px;
+}
+
+/* Custom button styles */
+.btn-primary {
+  @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-primary-300 focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-surface border border-background-300 hover:bg-background-50 text-background-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-background-300 focus:ring-offset-2;
+}
+
+.btn-success {
+  @apply bg-success-500 hover:bg-success-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-success-300 focus:ring-offset-2;
+}
+
+.btn-warning {
+  @apply bg-warning-500 hover:bg-warning-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-warning-300 focus:ring-offset-2;
+}
+
+.btn-error {
+  @apply bg-error-500 hover:bg-error-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-error-300 focus:ring-offset-2;
+}
+
+/* Card styles */
+.card {
+  @apply bg-surface rounded-lg shadow-sm border border-background-200 p-6;
+}
+
+.card-header {
+  @apply border-b border-background-200 pb-4 mb-4;
+}
+
+/* Form styles */
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-background-700 mb-2;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-background-300 rounded-lg focus:ring-2 focus:ring-primary-300 focus:border-primary-500 transition-colors duration-200;
+}
+
+.form-select {
+  @apply w-full px-3 py-2 border border-background-300 rounded-lg focus:ring-2 focus:ring-primary-300 focus:border-primary-500 transition-colors duration-200 bg-surface;
+}
+
+.form-textarea {
+  @apply w-full px-3 py-2 border border-background-300 rounded-lg focus:ring-2 focus:ring-primary-300 focus:border-primary-500 transition-colors duration-200 resize-y;
+}
+
+.form-error {
+  @apply text-error-500 text-sm mt-1;
+}
+
+/* Table styles */
+.table {
+  @apply w-full border-collapse bg-surface rounded-lg overflow-hidden shadow-sm;
+}
+
+.table th {
+  @apply bg-background-50 px-6 py-3 text-left text-xs font-medium text-background-500 uppercase tracking-wider border-b border-background-200;
+}
+
+.table td {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-background-900 border-b border-background-100;
+}
+
+.table tbody tr:hover {
+  @apply bg-background-50;
+}
+
+/* Status badges */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-success-100 text-success-800;
+}
+
+.badge-warning {
+  @apply bg-warning-100 text-warning-800;
+}
+
+.badge-error {
+  @apply bg-error-100 text-error-800;
+}
+
+.badge-info {
+  @apply bg-primary-100 text-primary-800;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full border-2 border-background-200 border-t-primary-500;
+}
+
+/* Animations */
+.fade-in {
+  @apply animate-fade-in;
+}
+
+.slide-up {
+  @apply animate-slide-up;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.4s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Responsive utilities */
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Custom utilities for laundry theme */
+.laundry-gradient {
+  background: linear-gradient(135deg, #0099cc 0%, #00c1d4 100%);
+}
+
+.laundry-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 153, 204, 0.1), 0 2px 4px -1px rgba(0, 153, 204, 0.06);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
+}

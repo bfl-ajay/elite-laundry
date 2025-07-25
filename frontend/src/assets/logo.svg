@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded-square background -->
+  <rect x="0" y="0" width="100" height="100" rx="20" ry="20" fill="#9D3744"/>
+
+  <!-- Inner circle -->
+  <circle cx="50" cy="50" r="38" fill="#FCEAEA"/>
+
+  <!-- Hanger icon -->
+  <g stroke="#9D3744" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Arms of the hanger -->
+    <path d="M30 60 L50 35 L70 60" />
+    <!-- Bottom bar -->
+    <path d="M30 60 H70" />
+    <!-- Hook -->
+    <path d="M50 35 a10 10 0 0 1 8 0" />
+  </g>
+
+  <!-- Text: Elite Laundry -->
+  <text x="120" y="35" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#7D0C17">Elite</text>
+  <text x="120" y="70" font-family="Segoe UI, Arial, sans-serif" font-size="28" fill="#7D0C17">Laundry</text>
+
+  <!-- Tagline -->
+  <text x="120" y="90" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#C51D23">
+    Elite Care for Everyday Wear
+  </text>
+</svg>

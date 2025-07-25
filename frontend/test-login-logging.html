@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Logging Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { border-color: #4CAF50; background-color: #f1f8e9; }
+        .error { border-color: #f44336; background-color: #ffebee; }
+        .info { border-color: #2196F3; background-color: #e3f2fd; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .log-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Login Logging Test Guide</h1>
+        
+        <div class="test-section info">
+            <h3>📋 How to Test Login Logging</h3>
+            <p>The login page now includes comprehensive logging to help trace login errors. Here's how to test it:</p>
+            
+            <h4>1. Access the Application</h4>
+            <ul>
+                <li>Start the backend server: <code>npm run dev</code> (in backend folder)</li>
+                <li>Start the frontend server: <code>npm run dev</code> (in frontend folder)</li>
+                <li>Open <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
+            </ul>
+            
+            <h4>2. Open Browser Developer Tools</h4>
+            <ul>
+                <li>Press F12 or right-click → Inspect</li>
+                <li>Go to the Console tab</li>
+                <li>Clear the console (Ctrl+L or click clear button)</li>
+            </ul>
+            
+            <h4>3. Test Different Login Scenarios</h4>
+            <ul>
+                <li><strong>Valid Login:</strong> Use username: <code>admin</code>, password: <code>admin123</code></li>
+                <li><strong>Invalid Username:</strong> Use username: <code>wronguser</code>, password: <code>admin123</code></li>
+                <li><strong>Invalid Password:</strong> Use username: <code>admin</code>, password: <code>wrongpass</code></li>
+                <li><strong>Empty Fields:</strong> Try submitting with empty username or password</li>
+                <li><strong>Network Error:</strong> Stop the backend server and try to login</li>
+            </ul>
+            
+            <h4>4. Enable Debug Panel (Optional)</h4>
+            <ul>
+                <li>Click "Show Debug Logs" link at the bottom of the login form</li>
+                <li>This shows a real-time log panel on the login page itself</li>
+                <li>Logs are filtered to show only login-related messages</li>
+            </ul>
+        </div>
+
+        <div class="test-section success">
+            <h3>✅ What You Should See in Console Logs</h3>
+            <p>The enhanced logging will show detailed information at each step:</p>
+            
+            <h4>🔄 Request Flow Logging:</h4>
+            <ul>
+                <li><strong>LoginForm.handleSubmit:</strong> Form submission details</li>
+                <li><strong>AuthContext.login:</strong> Authentication context processing</li>
+                <li><strong>AuthService.login:</strong> Service layer login attempt</li>
+                <li><strong>API Request Interceptor:</strong> HTTP request preparation</li>
+                <li><strong>API Response Interceptor:</strong> HTTP response handling</li>
+            </ul>
+            
+            <h4>📊 Information Logged:</h4>
+            <ul>
+                <li>Timestamps for all operations</li>
+                <li>Input validation results</li>
+                <li>HTTP request/response details</li>
+                <li>Error codes and messages</li>
+                <li>Authentication state changes</li>
+                <li>Network error details</li>
+            </ul>
+        </div>
+
+        <div class="test-section error">
+            <h3>🚨 Common Error Scenarios to Test</h3>
+            
+            <h4>1. Invalid Credentials (401 Error)</h4>
+            <p>Expected logs: Authentication error with detailed server response</p>
+            
+            <h4>2. Network Connection Issues</h4>
+            <p>Expected logs: Network error detection and timeout handling</p>
+            
+            <h4>3. Server Errors (500 Error)</h4>
+            <p>Expected logs: Server error identification and user-friendly messaging</p>
+            
+            <h4>4. Rate Limiting (429 Error)</h4>
+            <p>Expected logs: Rate limit detection and appropriate user messaging</p>
+        </div>
+
+        <div class="test-section info">
+            <h3>🛠️ Logging Features Added</h3>
+            <ul>
+                <li><strong>Comprehensive Request Tracing:</strong> Every step of the login process is logged</li>
+                <li><strong>Error Classification:</strong> Different error types are identified and handled appropriately</li>
+                <li><strong>Debug Panel:</strong> Real-time log display on the login page</li>
+                <li><strong>Timestamp Tracking:</strong> All logs include precise timestamps</li>
+                <li><strong>Data Sanitization:</strong> Sensitive data like passwords are not logged</li>
+                <li><strong>Network Diagnostics:</strong> Detailed network error information</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Sample Console Output</h3>
+            <div class="log-output">
+[2025-07-24T10:30:15.123Z] LoginForm.handleSubmit: Form submission started
+[2025-07-24T10:30:15.124Z] AuthContext.login: Starting login process
+[2025-07-24T10:30:15.125Z] AuthService.login: Starting login attempt
+[2025-07-24T10:30:15.126Z] API Request Interceptor: Preparing request
+[2025-07-24T10:30:15.127Z] API Request Interceptor: Added Basic Auth header
+[2025-07-24T10:30:15.200Z] API Response Interceptor: Error response
+[2025-07-24T10:30:15.201Z] AuthContext.login: Processing HTTP error
+[2025-07-24T10:30:15.202Z] LoginForm.handleSubmit: Login failed
+            </div>
+        </div>
+    </div>
+</body>
+</html>
