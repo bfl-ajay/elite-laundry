@@ -1,5 +1,5 @@
 # Multi-stage build for Frontend
-FROM node:18-alpine AS builder
+FROM node:18-alpine AS base
 
 # Install security updates
 RUN apk update && apk upgrade && \
@@ -10,13 +10,20 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+# Development stage
+FROM base AS development
+RUN npm install
 COPY frontend/ ./
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
 
-# Build the application
+# Build stage
+FROM base AS builder
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
+RUN npm ci
+COPY frontend/ ./
 RUN npm run build
 
 # Production stage with nginx

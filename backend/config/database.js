@@ -3,10 +3,10 @@ require('dotenv').config();
 
 // Database configuration with production security settings
 const dbConfig = {
-  user: process.env.DB_USER || 'hackathon',
+  user: process.env.DB_USER || 'postgres',
   host: process.env.DB_HOST || 'localhost',
   database: process.env.DB_NAME || 'laundry_management',
-  password: process.env.DB_PASSWORD || 'password',
+  password: process.env.DB_PASSWORD || 'postgres',
   port: parseInt(process.env.DB_PORT) || 5432,
   max: parseInt(process.env.DB_MAX_CONNECTIONS) || 20,
   idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT) || 30000,
@@ -25,8 +25,8 @@ if (process.env.DB_SSL === 'true') {
     ...(process.env.DB_SSL_KEY && { key: require('fs').readFileSync(process.env.DB_SSL_KEY) }),
     ...(process.env.DB_SSL_CA && { ca: require('fs').readFileSync(process.env.DB_SSL_CA) })
   };
-} else if (process.env.NODE_ENV === 'production' && process.env.DB_HOST !== 'localhost') {
-  // Only enable SSL for remote production databases
+} else if (process.env.NODE_ENV === 'production' && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== 'database') {
+  // Only enable SSL for remote production databases (not Docker containers)
   dbConfig.ssl = {
     rejectUnauthorized: false
   };

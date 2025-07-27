@@ -1,4 +1,4 @@
-# Production Dockerfile for Backend
+# Multi-stage Dockerfile for Backend
 FROM node:18-alpine AS base
 
 # Install security updates and required packages
@@ -15,29 +15,46 @@ WORKDIR /app
 # Copy package files
 COPY backend/package*.json ./
 
-# Install production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Development stage
+FROM base AS development
 
-# Copy application code
+# Copy source code first (excluding node_modules)
 COPY backend/ ./
+RUN rm -rf node_modules
 
-# Create uploads directory with proper permissions
+# Install all dependencies and rebuild native modules
+RUN npm install && \
+    npm rebuild && \
+    npm cache clean --force
+
+RUN chown -R backend:nodejs /app
+USER backend
+EXPOSE 5000
+CMD ["npm", "run", "dev"]
+
+# Production stage
+FROM base AS production
+
+# Copy source code first (excluding node_modules)
+COPY backend/ ./
+RUN rm -rf node_modules
+
+# Install production dependencies and rebuild native modules
+RUN npm ci --only=production && \
+    npm rebuild && \
+    npm cache clean --force
+
 RUN mkdir -p uploads && \
     chown -R backend:nodejs /app && \
-    chmod -R 755 /app
+    chmod -R 755 /app && \
+    chmod 777 uploads
 
-# Switch to non-root user
 USER backend
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+    CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Expose port
-EXPOSE 3001
-
-# Use dumb-init to handle signals properly
+EXPOSE 5000
 ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
 CMD ["npm", "start"]
