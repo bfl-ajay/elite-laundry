@@ -1,0 +1,114 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "orderNumber": "ORD001",
+      "customerName": "John Doe",
+      "contactNumber": "1234567890",
+      "orderDate": "2024-01-15T10:30:00Z",
+      "status": "Pending",
+      "totalAmount": 150.00,
+      "paymentStatus": "Unpaid",
+      "services": [
+        {
+          "serviceType": "washing",
+          "clothType": "normal",
+          "quantity": 5,
+          "unitCost": 10.00,
+          "totalCost": 50.00
+        },
+        {
+          "serviceType": "ironing",
+          "clothType": "normal",
+          "quantity": 10,
+          "unitCost": 10.00,
+          "totalCost": 100.00
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "orderNumber": "ORD002",
+      "customerName": "Jane Smith",
+      "contactNumber": "0987654321",
+      "orderDate": "2024-01-16T14:20:00Z",
+      "status": "Completed",
+      "totalAmount": 200.00,
+      "paymentStatus": "Paid",
+      "services": [
+        {
+          "serviceType": "dry_cleaning",
+          "clothType": "saari",
+          "quantity": 4,
+          "unitCost": 50.00,
+          "totalCost": 200.00
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "orderNumber": "ORD003",
+      "customerName": "Bob Johnson",
+      "contactNumber": "5555551234",
+      "orderDate": "2024-01-17T09:15:00Z",
+      "status": "Completed",
+      "totalAmount": 75.00,
+      "paymentStatus": "Unpaid",
+      "services": [
+        {
+          "serviceType": "washing",
+          "clothType": "normal",
+          "quantity": 3,
+          "unitCost": 10.00,
+          "totalCost": 30.00
+        },
+        {
+          "serviceType": "stain_removal",
+          "clothType": "normal",
+          "quantity": 3,
+          "unitCost": 15.00,
+          "totalCost": 45.00
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "orderNumber": "ORD004",
+      "customerName": "Alice Brown",
+      "contactNumber": "9876543210",
+      "orderDate": "2024-01-18T16:45:00Z",
+      "status": "Pending",
+      "totalAmount": 120.00,
+      "paymentStatus": "Unpaid",
+      "services": [
+        {
+          "serviceType": "ironing",
+          "clothType": "saari",
+          "quantity": 6,
+          "unitCost": 20.00,
+          "totalCost": 120.00
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "orderNumber": "ORD005",
+      "customerName": "Charlie Wilson",
+      "contactNumber": "1111222233",
+      "orderDate": "2024-01-19T11:30:00Z",
+      "status": "Completed",
+      "totalAmount": 300.00,
+      "paymentStatus": "Paid",
+      "services": [
+        {
+          "serviceType": "dry_cleaning",
+          "clothType": "normal",
+          "quantity": 10,
+          "unitCost": 30.00,
+          "totalCost": 300.00
+        }
+      ]
+    }
+  ]
+}

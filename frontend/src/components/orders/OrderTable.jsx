@@ -2,20 +2,64 @@ import React, { useState, useEffect } from 'react';
 import { CheckIcon } from '../../assets/icons/laundry-icons';
 import { orderService } from '../../services';
 
-const OrderTable = ({ refreshTrigger, onOrderSelect }) => {
+const OrderTable = ({ 
+  refreshTrigger, 
+  onOrderSelect, 
+  filter = 'all', 
+  searchQuery = '', 
+  onSearchChange,
+  defaultSort = 'created_at',
+  sortOrder = 'desc'
+}) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     fetchOrders();
-  }, [refreshTrigger, filter]);
+  }, [refreshTrigger, filter, searchQuery]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await orderService.getOrders(filter !== 'all' ? { status: filter } : {});
-      setOrders(data);
+      
+      // Build query parameters
+      const params = {};
+      
+      // Add status filter
+      if (filter && filter !== 'all') {
+        // Map filter values to API status values
+        const statusMap = {
+          'pending': 'Pending',
+          'completed': 'Completed',
+          'paid': 'Completed', // For paid orders, we filter by completed status and payment status
+          'unpaid-completed': 'Completed' // For unpaid completed orders
+        };
+        
+        if (statusMap[filter]) {
+          params.status = statusMap[filter];
+        }
+      }
+      
+      // Add search query
+      if (searchQuery && searchQuery.trim()) {
+        params.search = searchQuery.trim();
+      }
+      
+      const data = await orderService.getOrders(params);
+      
+      // Additional client-side filtering for payment status
+      let filteredData = data;
+      if (filter === 'paid') {
+        filteredData = data.filter(order => 
+          order.status === 'Completed' && order.payment_status === 'Paid'
+        );
+      } else if (filter === 'unpaid-completed') {
+        filteredData = data.filter(order => 
+          order.status === 'Completed' && order.payment_status !== 'Paid'
+        );
+      }
+      
+      setOrders(filteredData);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -68,24 +112,19 @@ const OrderTable = ({ refreshTrigger, onOrderSelect }) => {
 
   return (
     <div className="bg-surface rounded-lg shadow-md">
-      {/* Header with filters */}
+      {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Orders</h2>
-          <div className="flex space-x-2">
-            {['all', 'Pending', 'Completed'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                  filter === status
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {status === 'all' ? 'All Orders' : status}
-              </button>
-            ))}
+          <h2 className="text-xl font-semibold text-gray-900">
+            Orders
+            {searchQuery && (
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                - Search results for "{searchQuery}"
+              </span>
+            )}
+          </h2>
+          <div className="text-sm text-gray-500">
+            {orders.length} {orders.length === 1 ? 'order' : 'orders'}
           </div>
         </div>
       </div>

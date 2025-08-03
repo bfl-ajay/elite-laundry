@@ -4,7 +4,7 @@ require('dotenv').config();
 const getCorsConfig = () => {
   const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-    : ['http://localhost:3000'];
+    : ['http://elite.inichepro.in'];
 
   return {
     origin: (origin, callback) => {

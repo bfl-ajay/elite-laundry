@@ -159,8 +159,8 @@ uploads/
 # SSL certificates
 ssl/
 
-# Deployment files
-deployment/
+# Deployment files (keep nginx configs)
+# deployment/
 
 # Kiro files
 .kiro/

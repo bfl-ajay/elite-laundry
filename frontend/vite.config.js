@@ -20,7 +20,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3001',
+        target: process.env.VITE_API_URL || 'http://elite.inichepro.in',
         changeOrigin: true,
         secure: process.env.NODE_ENV === 'production',
       },

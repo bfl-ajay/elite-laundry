@@ -23,7 +23,7 @@ const options = {
         description: 'Development server'
       },
       {
-        url: 'https://api.laundrymanagement.com',
+        url: 'https://elite-api.inichepro.in',
         description: 'Production server'
       }
     ],

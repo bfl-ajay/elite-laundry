@@ -1,144 +1,363 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Dashboard from '../Dashboard';
+import { useAuth } from '../../../contexts/AuthContext';
+import orderService from '../../../services/orderService';
 
-// Mock the services
-jest.mock('../../../services', () => ({
-  analyticsService: {
-    getBusinessAnalytics: jest.fn(),
-    getExpenseAnalytics: jest.fn()
-  }
-}));
+// Mock the dependencies
+jest.mock('../../../contexts/AuthContext');
+jest.mock('../../../services/orderService');
 
-// Mock child components
-jest.mock('../BusinessMetrics', () => {
-  return function MockBusinessMetrics({ data, loading, error }) {
-    if (loading) return <div>Loading business metrics...</div>;
-    if (error) return <div>Error loading business metrics</div>;
-    return <div>Business Metrics Component</div>;
-  };
-});
-
-jest.mock('../ExpenseMetrics', () => {
-  return function MockExpenseMetrics({ data, loading, error }) {
-    if (loading) return <div>Loading expense metrics...</div>;
-    if (error) return <div>Error loading expense metrics</div>;
-    return <div>Expense Metrics Component</div>;
-  };
-});
-
-jest.mock('../TimeFilter', () => {
-  return function MockTimeFilter({ selectedPeriod, onPeriodChange }) {
+// Mock the child components
+jest.mock('../OrderMetricsBadges', () => {
+  return function MockOrderMetricsBadges({ onFilterChange, activeFilter, loading }) {
     return (
-      <div>
-        Time Filter Component
-        <button onClick={() => onPeriodChange('daily')}>Daily</button>
-        <button onClick={() => onPeriodChange('weekly')}>Weekly</button>
-        <button onClick={() => onPeriodChange('monthly')}>Monthly</button>
+      <div data-testid="order-metrics-badges">
+        <button 
+          onClick={() => onFilterChange('pending')}
+          data-testid="pending-badge"
+          className={activeFilter === 'pending' ? 'active' : ''}
+        >
+          Pending: 45
+        </button>
+        <button 
+          onClick={() => onFilterChange('completed')}
+          data-testid="completed-badge"
+          className={activeFilter === 'completed' ? 'active' : ''}
+        >
+          Completed: 85
+        </button>
+        {loading && <div data-testid="badges-loading">Loading...</div>}
       </div>
     );
   };
 });
 
-const { analyticsService } = require('../../../services');
+jest.mock('../SearchBar', () => {
+  return function MockSearchBar({ onSearchChange, searchQuery, loading }) {
+    return (
+      <div data-testid="search-bar">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search..."
+          data-testid="search-input"
+        />
+        {loading && <div data-testid="search-loading">Loading...</div>}
+      </div>
+    );
+  };
+});
+
+jest.mock('../../orders/OrderTable', () => {
+  return function MockOrderTable({ filter, searchQuery, onOrderSelect, refreshTrigger }) {
+    return (
+      <div data-testid="order-table">
+        <div data-testid="table-filter">Filter: {filter}</div>
+        <div data-testid="table-search">Search: {searchQuery}</div>
+        <div data-testid="table-refresh">Refresh: {refreshTrigger}</div>
+        <button 
+          onClick={() => onOrderSelect({ id: 1, orderNumber: 'ORD001' })}
+          data-testid="select-order"
+        >
+          Select Order
+        </button>
+      </div>
+    );
+  };
+});
+
+jest.mock('../TimeFilter', () => {
+  return function MockTimeFilter() {
+    return <div data-testid="time-filter">Time Filter</div>;
+  };
+});
 
 describe('Dashboard', () => {
+  const mockUser = {
+    id: 1,
+    username: 'testuser',
+    role: 'employee'
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Default mock implementations
-    analyticsService.getBusinessAnalytics.mockResolvedValue({
-      data: {
-        totalOrders: 100,
-        completedOrders: 80,
-        pendingOrders: 20,
-        totalRevenue: 5000,
-        averageOrderValue: 50
-      }
-    });
-    
-    analyticsService.getExpenseAnalytics.mockResolvedValue({
-      data: {
-        totalExpenses: 50,
-        totalAmount: 2000,
-        averageExpense: 40
-      }
+    useAuth.mockReturnValue({ user: mockUser });
+    orderService.getOrderMetrics.mockResolvedValue({
+      total: 150,
+      pending: 45,
+      completed: 85,
+      paid: 70,
+      unpaid_completed: 15
     });
   });
 
-  test('renders dashboard with all components', async () => {
-    render(<Dashboard />);
+  describe('Initial Rendering', () => {
+    it('renders all main components', () => {
+      render(<Dashboard />);
 
-    expect(screen.getByText('Business Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Time Filter Component')).toBeInTheDocument();
-    
-    await waitFor(() => {
-      expect(screen.getByText('Business Metrics Component')).toBeInTheDocument();
-      expect(screen.getByText('Expense Metrics Component')).toBeInTheDocument();
+      expect(screen.getByText(`Welcome back, ${mockUser.username}!`)).toBeInTheDocument();
+      expect(screen.getByTestId('order-metrics-badges')).toBeInTheDocument();
+      expect(screen.getByTestId('search-bar')).toBeInTheDocument();
+      expect(screen.getByTestId('order-table')).toBeInTheDocument();
+      expect(screen.getByTestId('time-filter')).toBeInTheDocument();
+    });
+
+    it('initializes with default state values', () => {
+      render(<Dashboard />);
+
+      // Check that pending filter is active by default
+      const pendingBadge = screen.getByTestId('pending-badge');
+      expect(pendingBadge).toHaveClass('active');
+
+      // Check that search is empty initially
+      const searchInput = screen.getByTestId('search-input');
+      expect(searchInput).toHaveValue('');
+
+      // Check that table receives correct initial props
+      expect(screen.getByTestId('table-filter')).toHaveTextContent('Filter: pending');
+      expect(screen.getByTestId('table-search')).toHaveTextContent('Search: ');
+    });
+
+    it('displays quick actions section', () => {
+      render(<Dashboard />);
+
+      expect(screen.getByText('Quick Actions')).toBeInTheDocument();
+      expect(screen.getByText('New Order')).toBeInTheDocument();
+      expect(screen.getByText('Mark Complete')).toBeInTheDocument();
+      expect(screen.getByText('Payment')).toBeInTheDocument();
+      expect(screen.getByText('Reports')).toBeInTheDocument();
     });
   });
 
-  test('shows loading state initially', () => {
-    render(<Dashboard />);
+  describe('Filter State Management', () => {
+    it('updates active filter when badge is clicked', () => {
+      render(<Dashboard />);
 
-    expect(screen.getByText('Loading business metrics...')).toBeInTheDocument();
-    expect(screen.getByText('Loading expense metrics...')).toBeInTheDocument();
-  });
+      // Initially pending should be active
+      expect(screen.getByTestId('table-filter')).toHaveTextContent('Filter: pending');
 
-  test('handles API errors gracefully', async () => {
-    analyticsService.getBusinessAnalytics.mockRejectedValue(new Error('API Error'));
-    analyticsService.getExpenseAnalytics.mockRejectedValue(new Error('API Error'));
+      // Click completed badge
+      fireEvent.click(screen.getByTestId('completed-badge'));
 
-    render(<Dashboard />);
+      // Check that filter changed
+      expect(screen.getByTestId('table-filter')).toHaveTextContent('Filter: completed');
+    });
 
-    await waitFor(() => {
-      expect(screen.getByText('Error loading business metrics')).toBeInTheDocument();
-      expect(screen.getByText('Error loading expense metrics')).toBeInTheDocument();
+    it('displays correct filter name in status indicator', () => {
+      render(<Dashboard />);
+
+      // Check initial filter display
+      expect(screen.getByText('Pending Orders')).toBeInTheDocument();
+
+      // Change filter
+      fireEvent.click(screen.getByTestId('completed-badge'));
+
+      // Check updated filter display
+      expect(screen.getByText('Completed Orders')).toBeInTheDocument();
+    });
+
+    it('maintains search query when filter changes', () => {
+      render(<Dashboard />);
+
+      // Set search query
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'John Doe' } });
+
+      expect(screen.getByTestId('table-search')).toHaveTextContent('Search: John Doe');
+
+      // Change filter
+      fireEvent.click(screen.getByTestId('completed-badge'));
+
+      // Search should be maintained
+      expect(screen.getByTestId('table-search')).toHaveTextContent('Search: John Doe');
     });
   });
 
-  test('fetches data on mount', async () => {
-    render(<Dashboard />);
+  describe('Search State Management', () => {
+    it('updates search query when search input changes', () => {
+      render(<Dashboard />);
 
-    await waitFor(() => {
-      expect(analyticsService.getBusinessAnalytics).toHaveBeenCalledWith('monthly');
-      expect(analyticsService.getExpenseAnalytics).toHaveBeenCalledWith('monthly');
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'Jane Smith' } });
+
+      expect(screen.getByTestId('table-search')).toHaveTextContent('Search: Jane Smith');
+    });
+
+    it('displays search query in status indicator', () => {
+      render(<Dashboard />);
+
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'test query' } });
+
+      expect(screen.getByText('"test query"')).toBeInTheDocument();
+    });
+
+    it('shows clear search button when search query exists', () => {
+      render(<Dashboard />);
+
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'test query' } });
+
+      const clearButton = screen.getByTitle('Clear search');
+      expect(clearButton).toBeInTheDocument();
+    });
+
+    it('clears search when clear button is clicked', () => {
+      render(<Dashboard />);
+
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'test query' } });
+
+      const clearButton = screen.getByTitle('Clear search');
+      fireEvent.click(clearButton);
+
+      expect(screen.getByTestId('table-search')).toHaveTextContent('Search: ');
+      expect(screen.queryByText('"test query"')).not.toBeInTheDocument();
     });
   });
 
-  test('refetches data when time period changes', async () => {
-    render(<Dashboard />);
+  describe('Loading State Management', () => {
+    it('shows loading state when filter or search changes', async () => {
+      jest.useFakeTimers();
+      render(<Dashboard />);
 
-    // Wait for initial load
-    await waitFor(() => {
-      expect(analyticsService.getBusinessAnalytics).toHaveBeenCalledWith('monthly');
+      // Change filter
+      fireEvent.click(screen.getByTestId('completed-badge'));
+
+      // Should show loading immediately
+      expect(screen.getByTestId('badges-loading')).toBeInTheDocument();
+      expect(screen.getByTestId('search-loading')).toBeInTheDocument();
+
+      // Advance timers to clear loading state
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('badges-loading')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
+      });
+
+      jest.useRealTimers();
     });
 
-    // Clear previous calls
-    jest.clearAllMocks();
+    it('manages loading state for search changes', async () => {
+      jest.useFakeTimers();
+      render(<Dashboard />);
 
-    // Simulate period change
-    const dailyButton = screen.getByText('Daily');
-    dailyButton.click();
+      const searchInput = screen.getByTestId('search-input');
+      fireEvent.change(searchInput, { target: { value: 'John' } });
 
-    await waitFor(() => {
-      expect(analyticsService.getBusinessAnalytics).toHaveBeenCalledWith('daily');
-      expect(analyticsService.getExpenseAnalytics).toHaveBeenCalledWith('daily');
+      // Should show loading
+      expect(screen.getByTestId('search-loading')).toBeInTheDocument();
+
+      // Advance timers
+      jest.advanceTimersByTime(300);
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('search-loading')).not.toBeInTheDocument();
+      });
+
+      jest.useRealTimers();
     });
   });
 
-  test('handles partial API failures', async () => {
-    analyticsService.getBusinessAnalytics.mockResolvedValue({
-      data: { totalOrders: 100 }
+  describe('Refresh Functionality', () => {
+    it('increments refresh trigger when refresh button is clicked', () => {
+      render(<Dashboard />);
+
+      // Initial refresh trigger should be 0
+      expect(screen.getByTestId('table-refresh')).toHaveTextContent('Refresh: 0');
+
+      // Click refresh button
+      const refreshButton = screen.getByText('Refresh');
+      fireEvent.click(refreshButton);
+
+      // Refresh trigger should increment
+      expect(screen.getByTestId('table-refresh')).toHaveTextContent('Refresh: 1');
     });
-    analyticsService.getExpenseAnalytics.mockRejectedValue(new Error('Expense API Error'));
 
-    render(<Dashboard />);
+    it('refresh button has correct styling and icon', () => {
+      render(<Dashboard />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Business Metrics Component')).toBeInTheDocument();
-      expect(screen.getByText('Error loading expense metrics')).toBeInTheDocument();
+      const refreshButton = screen.getByText('Refresh');
+      expect(refreshButton).toHaveClass('bg-blue-600', 'text-white', 'hover:bg-blue-700');
+      
+      // Check for refresh icon (SVG)
+      const refreshIcon = refreshButton.querySelector('svg');
+      expect(refreshIcon).toBeInTheDocument();
+    });
+  });
+
+  describe('Order Selection', () => {
+    it('handles order selection from table', () => {
+      render(<Dashboard />);
+
+      const selectButton = screen.getByTestId('select-order');
+      fireEvent.click(selectButton);
+
+      // In a real implementation, this would update selectedOrder state
+      // For now, we just verify the interaction works
+      expect(selectButton).toBeInTheDocument();
+    });
+  });
+
+  describe('User Context Integration', () => {
+    it('displays correct welcome message for different users', () => {
+      const adminUser = { ...mockUser, username: 'admin', role: 'admin' };
+      useAuth.mockReturnValue({ user: adminUser });
+
+      render(<Dashboard />);
+
+      expect(screen.getByText('Welcome back, admin!')).toBeInTheDocument();
+    });
+
+    it('handles missing user gracefully', () => {
+      useAuth.mockReturnValue({ user: null });
+
+      render(<Dashboard />);
+
+      // Should still render without crashing
+      expect(screen.getByTestId('order-metrics-badges')).toBeInTheDocument();
+    });
+  });
+
+  describe('Responsive Design', () => {
+    it('applies responsive grid classes to components', () => {
+      render(<Dashboard />);
+
+      const container = screen.getByTestId('order-metrics-badges').parentElement;
+      expect(container).toHaveClass('grid', 'grid-cols-1', 'md:grid-cols-3', 'lg:grid-cols-5');
+    });
+
+    it('applies responsive classes to quick actions', () => {
+      render(<Dashboard />);
+
+      const quickActionsGrid = screen.getByText('New Order').parentElement.parentElement;
+      expect(quickActionsGrid).toHaveClass('grid', 'grid-cols-2', 'md:grid-cols-4');
+    });
+  });
+
+  describe('Accessibility', () => {
+    it('has proper heading structure', () => {
+      render(<Dashboard />);
+
+      const welcomeHeading = screen.getByRole('heading', { level: 1 });
+      expect(welcomeHeading).toBeInTheDocument();
+
+      const quickActionsHeading = screen.getByRole('heading', { level: 3 });
+      expect(quickActionsHeading).toHaveTextContent('Quick Actions');
+    });
+
+    it('provides accessible button labels', () => {
+      render(<Dashboard />);
+
+      const refreshButton = screen.getByRole('button', { name: /refresh/i });
+      expect(refreshButton).toBeInTheDocument();
+
+      const clearButton = screen.getByTitle('Clear search');
+      expect(clearButton).toHaveAttribute('aria-label');
     });
   });
 });

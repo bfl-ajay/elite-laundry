@@ -16,6 +16,81 @@ const router = express.Router();
 // Apply auth middleware to all routes
 router.use(authenticate);
 
+/**
+ * @swagger
+ * /api/orders/metrics:
+ *   get:
+ *     summary: Get order metrics for dashboard
+ *     description: Retrieve order counts by status and payment status for dashboard display
+ *     tags: [Orders]
+ *     security:
+ *       - basicAuth: []
+ *       - sessionAuth: []
+ *     responses:
+ *       200:
+ *         description: Order metrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalOrders:
+ *                       type: integer
+ *                       example: 150
+ *                     pendingOrders:
+ *                       type: integer
+ *                       example: 25
+ *                     completedOrders:
+ *                       type: integer
+ *                       example: 125
+ *                     paidOrders:
+ *                       type: integer
+ *                       example: 100
+ *                     unpaidCompletedOrders:
+ *                       type: integer
+ *                       example: 25
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/metrics', asyncHandler(async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(*) as total_orders,
+        COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pending_orders,
+        COUNT(CASE WHEN status = 'Completed' THEN 1 END) as completed_orders,
+        COUNT(CASE WHEN status = 'Completed' AND payment_status = 'Paid' THEN 1 END) as paid_orders,
+        COUNT(CASE WHEN status = 'Completed' AND (payment_status IS NULL OR payment_status != 'Paid') THEN 1 END) as unpaid_completed_orders
+      FROM orders
+    `);
+
+    const metrics = result.rows[0];
+    
+    res.json({
+      success: true,
+      data: {
+        totalOrders: parseInt(metrics.total_orders),
+        pendingOrders: parseInt(metrics.pending_orders),
+        completedOrders: parseInt(metrics.completed_orders),
+        paidOrders: parseInt(metrics.paid_orders),
+        unpaidCompletedOrders: parseInt(metrics.unpaid_completed_orders)
+      }
+    });
+  } catch (error) {
+    throw new DatabaseError('Failed to retrieve order metrics', error);
+  }
+}));
+
 // Middleware to load order for permission checking
 const loadOrder = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
@@ -64,6 +139,12 @@ const loadOrder = asyncHandler(async (req, res, next) => {
  *           format: date
  *         description: Filter orders until this date (YYYY-MM-DD)
  *         example: 2024-12-31
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search orders by customer name or contact number
+ *         example: John
  *     responses:
  *       200:
  *         description: Orders retrieved successfully
@@ -99,7 +180,7 @@ const loadOrder = asyncHandler(async (req, res, next) => {
  */
 router.get('/', orderValidations.list, validateDateRange, asyncHandler(async (req, res) => {
   try {
-    const { status, startDate, endDate } = req.query;
+    const { status, startDate, endDate, search } = req.query;
     let query = `
       SELECT o.*, 
              COALESCE(
@@ -140,6 +221,12 @@ router.get('/', orderValidations.list, validateDateRange, asyncHandler(async (re
       params.push(endDate);
     }
 
+    if (search) {
+      paramCount++;
+      query += ` AND (LOWER(o.customer_name) LIKE LOWER($${paramCount}) OR o.contact_number ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+
     query += ` GROUP BY o.id ORDER BY o.created_at DESC`;
 
     const result = await pool.query(query, params);
@@ -152,6 +239,7 @@ router.get('/', orderValidations.list, validateDateRange, asyncHandler(async (re
     throw new DatabaseError('Failed to retrieve orders', error);
   }
 }));
+
 
 // Get specific order by ID
 router.get('/:id', orderValidations.getById, asyncHandler(async (req, res) => {

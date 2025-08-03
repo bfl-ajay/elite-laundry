@@ -1,18 +1,31 @@
 import api from './api';
+import { cacheUtils } from '../utils/cache';
 
 class OrderService {
   // Get all orders with optional filtering
   async getOrders(filters = {}) {
     try {
+      // Check cache first
+      const cachedOrders = cacheUtils.getCachedOrders(filters);
+      if (cachedOrders) {
+        return cachedOrders;
+      }
+
       const params = new URLSearchParams();
       
       if (filters.status) params.append('status', filters.status);
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
       if (filters.customerName) params.append('customerName', filters.customerName);
+      if (filters.search) params.append('search', filters.search);
 
       const response = await api.get(`/orders?${params.toString()}`);
-      return response.data.data || []; // Extract the data array from the response
+      const orders = response.data.data || []; // Extract the data array from the response
+      
+      // Cache the results
+      cacheUtils.cacheOrders(filters, orders);
+      
+      return orders;
     } catch (error) {
       console.error('Get orders error:', error);
       throw error;
@@ -97,6 +110,28 @@ class OrderService {
       return response.data.data; // Extract the data from the response
     } catch (error) {
       console.error('Get order statistics error:', error);
+      throw error;
+    }
+  }
+
+  // Get order metrics for dashboard
+  async getOrderMetrics() {
+    try {
+      // Check cache first
+      const cachedMetrics = cacheUtils.getCachedMetrics();
+      if (cachedMetrics) {
+        return cachedMetrics;
+      }
+
+      const response = await api.get('/orders/metrics');
+      const metrics = response.data.data; // Extract the data from the response
+      
+      // Cache the results
+      cacheUtils.cacheMetrics(metrics);
+      
+      return metrics;
+    } catch (error) {
+      console.error('Get order metrics error:', error);
       throw error;
     }
   }

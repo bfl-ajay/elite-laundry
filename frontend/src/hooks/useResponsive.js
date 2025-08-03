@@ -1,167 +1,133 @@
 import { useState, useEffect } from 'react';
 
-// Tailwind CSS breakpoints
-const breakpoints = {
-  sm: 640,
-  md: 768,
-  lg: 1024,
-  xl: 1280,
-  '2xl': 1536
-};
-
-const useResponsive = () => {
+/**
+ * Custom hook for responsive design breakpoints
+ * Returns boolean values for different screen sizes
+ */
+export const useResponsive = () => {
   const [screenSize, setScreenSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0
+    isMobile: false,
+    isTablet: false,
+    isDesktop: false,
+    width: 0,
+    height: 0
   });
 
-  const [currentBreakpoint, setCurrentBreakpoint] = useState('xs');
-
   useEffect(() => {
-    const handleResize = () => {
+    const updateScreenSize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
       
-      setScreenSize({ width, height });
-
-      // Determine current breakpoint
-      if (width >= breakpoints['2xl']) {
-        setCurrentBreakpoint('2xl');
-      } else if (width >= breakpoints.xl) {
-        setCurrentBreakpoint('xl');
-      } else if (width >= breakpoints.lg) {
-        setCurrentBreakpoint('lg');
-      } else if (width >= breakpoints.md) {
-        setCurrentBreakpoint('md');
-      } else if (width >= breakpoints.sm) {
-        setCurrentBreakpoint('sm');
-      } else {
-        setCurrentBreakpoint('xs');
-      }
+      setScreenSize({
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024,
+        width,
+        height
+      });
     };
 
-    // Set initial values
-    handleResize();
+    // Initial check
+    updateScreenSize();
 
     // Add event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', updateScreenSize);
 
     // Cleanup
-    return () => window.removeEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', updateScreenSize);
   }, []);
 
-  // Helper functions
-  const isMobile = currentBreakpoint === 'xs';
-  const isTablet = currentBreakpoint === 'sm' || currentBreakpoint === 'md';
-  const isDesktop = ['lg', 'xl', '2xl'].includes(currentBreakpoint);
-  const isSmallScreen = ['xs', 'sm'].includes(currentBreakpoint);
-  const isLargeScreen = ['xl', '2xl'].includes(currentBreakpoint);
-
-  // Breakpoint checkers
-  const isAbove = (breakpoint) => {
-    const breakpointOrder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
-    const currentIndex = breakpointOrder.indexOf(currentBreakpoint);
-    const targetIndex = breakpointOrder.indexOf(breakpoint);
-    return currentIndex > targetIndex;
-  };
-
-  const isBelow = (breakpoint) => {
-    const breakpointOrder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
-    const currentIndex = breakpointOrder.indexOf(currentBreakpoint);
-    const targetIndex = breakpointOrder.indexOf(breakpoint);
-    return currentIndex < targetIndex;
-  };
-
-  const isAt = (breakpoint) => currentBreakpoint === breakpoint;
-
-  // Responsive value selector
-  const getResponsiveValue = (values) => {
-    if (typeof values !== 'object') return values;
-    
-    // Check from largest to smallest breakpoint
-    const orderedBreakpoints = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs'];
-    const currentIndex = orderedBreakpoints.indexOf(currentBreakpoint);
-    
-    for (let i = currentIndex; i < orderedBreakpoints.length; i++) {
-      const bp = orderedBreakpoints[i];
-      if (values[bp] !== undefined) {
-        return values[bp];
-      }
-    }
-    
-    // Fallback to default or first available value
-    return values.default || values[Object.keys(values)[0]];
-  };
-
-  // Grid columns helper
-  const getGridCols = (colsConfig) => {
-    return getResponsiveValue(colsConfig);
-  };
-
-  // Spacing helper
-  const getSpacing = (spacingConfig) => {
-    return getResponsiveValue(spacingConfig);
-  };
-
-  return {
-    // Screen dimensions
-    screenSize,
-    width: screenSize.width,
-    height: screenSize.height,
-    
-    // Current breakpoint
-    currentBreakpoint,
-    
-    // Device type helpers
-    isMobile,
-    isTablet,
-    isDesktop,
-    isSmallScreen,
-    isLargeScreen,
-    
-    // Breakpoint checkers
-    isAbove,
-    isBelow,
-    isAt,
-    
-    // Responsive value helpers
-    getResponsiveValue,
-    getGridCols,
-    getSpacing,
-    
-    // Breakpoint values for reference
-    breakpoints
-  };
+  return screenSize;
 };
 
-// Hook for specific breakpoint matching
-export const useBreakpoint = (breakpoint) => {
-  const { isAt, isAbove, isBelow } = useResponsive();
-  
-  return {
-    isExact: isAt(breakpoint),
-    isAbove: isAbove(breakpoint),
-    isBelow: isBelow(breakpoint)
-  };
-};
-
-// Hook for media query matching
-export const useMediaQuery = (query) => {
-  const [matches, setMatches] = useState(false);
+/**
+ * Hook for detecting touch devices
+ */
+export const useTouch = () => {
+  const [isTouch, setIsTouch] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    const checkTouch = () => {
+      setIsTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
 
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
+    checkTouch();
+  }, []);
 
-    const handler = (event) => setMatches(event.matches);
-    mediaQuery.addEventListener('change', handler);
+  return isTouch;
+};
 
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [query]);
+/**
+ * Hook for detecting device orientation
+ */
+export const useOrientation = () => {
+  const [orientation, setOrientation] = useState({
+    isPortrait: true,
+    isLandscape: false,
+    angle: 0
+  });
 
-  return matches;
+  useEffect(() => {
+    const updateOrientation = () => {
+      const angle = window.screen?.orientation?.angle || 0;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      
+      setOrientation({
+        isPortrait,
+        isLandscape: !isPortrait,
+        angle
+      });
+    };
+
+    updateOrientation();
+
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', updateOrientation);
+    window.addEventListener('resize', updateOrientation);
+
+    return () => {
+      window.removeEventListener('orientationchange', updateOrientation);
+      window.removeEventListener('resize', updateOrientation);
+    };
+  }, []);
+
+  return orientation;
+};
+
+/**
+ * Hook for detecting reduced motion preference
+ */
+export const useReducedMotion = () => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e) => setPrefersReducedMotion(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+};
+
+/**
+ * Combined responsive hook with all utilities
+ */
+export const useResponsiveUtils = () => {
+  const screenSize = useResponsive();
+  const isTouch = useTouch();
+  const orientation = useOrientation();
+  const prefersReducedMotion = useReducedMotion();
+
+  return {
+    ...screenSize,
+    isTouch,
+    ...orientation,
+    prefersReducedMotion
+  };
 };
 
 export default useResponsive;

@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "data": {
+    "total": 150,
+    "pending": 45,
+    "completed": 85,
+    "paid": 70,
+    "unpaid_completed": 15
+  }
+}

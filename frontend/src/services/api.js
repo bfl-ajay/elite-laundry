@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://elite-api.inichepro.in/api',
   timeout: 10000,
   withCredentials: true, // Important for session-based auth
 });
@@ -78,18 +78,18 @@ api.interceptors.response.use(
     // Handle authentication errors
     if (error.response?.status === 401) {
       console.log(`[${timestamp}] API Response Interceptor: Handling 401 authentication error`);
-      
+
       // Clear stored credentials
       localStorage.removeItem('authCredentials');
       localStorage.removeItem('user');
       console.log(`[${timestamp}] API Response Interceptor: Cleared stored credentials`);
-      
+
       // Redirect to login if not already there
       if (window.location.pathname !== '/login') {
         console.log(`[${timestamp}] API Response Interceptor: Redirecting to login page`);
         window.location.href = '/login';
       }
-      
+
       return Promise.reject({
         success: false,
         error: {
@@ -110,7 +110,7 @@ api.interceptors.response.use(
 
       let message = 'Unable to connect to server. Please check your connection.';
       let code = 'NETWORK_ERROR';
-      
+
       if (error.code === 'ECONNABORTED') {
         message = 'Request timed out. Please try again.';
         code = 'TIMEOUT_ERROR';
@@ -119,7 +119,7 @@ api.interceptors.response.use(
         message = 'Network connection failed. Please check your internet connection.';
         console.log(`[${timestamp}] API Response Interceptor: Network connection failed`);
       }
-      
+
       console.error(`[${timestamp}] API Response Interceptor: Final network error`, { code, message });
       return Promise.reject({
         success: false,
