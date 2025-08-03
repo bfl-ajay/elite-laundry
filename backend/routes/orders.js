@@ -75,7 +75,7 @@ router.get('/metrics', asyncHandler(async (req, res) => {
     `);
 
     const metrics = result.rows[0];
-    
+
     res.json({
       success: true,
       data: {
@@ -230,7 +230,7 @@ router.get('/', orderValidations.list, validateDateRange, asyncHandler(async (re
     query += ` GROUP BY o.id ORDER BY o.created_at DESC`;
 
     const result = await pool.query(query, params);
-    
+
     res.json({
       success: true,
       data: result.rows
@@ -245,7 +245,7 @@ router.get('/', orderValidations.list, validateDateRange, asyncHandler(async (re
 router.get('/:id', orderValidations.getById, asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = await pool.query(`
       SELECT o.*, 
              COALESCE(
@@ -380,7 +380,7 @@ router.get('/:id', orderValidations.getById, asyncHandler(async (req, res) => {
 router.post('/', requirePermission('orders:create'), orderValidations.create, asyncHandler(async (req, res) => {
   try {
     const { customerName, contactNumber, customerAddress, orderDate, services } = req.body;
-    
+
     // Debug: Log user information
     console.log('Order creation - User info:', {
       userId: req.user?.id,
@@ -389,7 +389,7 @@ router.post('/', requirePermission('orders:create'), orderValidations.create, as
       hasUser: !!req.user,
       userObject: req.user
     });
-    
+
     if (!req.user?.id) {
       console.error('WARNING: req.user.id is not available for order creation!');
     }
@@ -403,7 +403,7 @@ router.post('/', requirePermission('orders:create'), orderValidations.create, as
       const orderNumber = `ORD${Date.now()}`;
 
       // Calculate total amount
-      const totalAmount = services.reduce((sum, service) => 
+      const totalAmount = services.reduce((sum, service) =>
         sum + (service.quantity * service.unitCost), 0
       );
 
@@ -513,7 +513,7 @@ router.put('/:id', loadOrder, canEditOrder, orderValidations.update, asyncHandle
       }
 
       // Calculate new total amount
-      const totalAmount = services.reduce((sum, service) => 
+      const totalAmount = services.reduce((sum, service) =>
         sum + (service.quantity * service.unitCost), 0
       );
 
@@ -708,7 +708,7 @@ router.patch('/:id/reject', requirePermission('orders:reject'), asyncHandler(asy
 router.get('/:id/bill', orderValidations.getById, asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const result = await pool.query(`
       SELECT o.*, 
              COALESCE(
@@ -735,7 +735,7 @@ router.get('/:id/bill', orderValidations.getById, asyncHandler(async (req, res) 
     }
 
     const order = result.rows[0];
-    
+
     // Generate bill data
     const bill = {
       billNumber: `BILL-${order.order_number}`,
@@ -808,10 +808,10 @@ router.get('/:id/bill', orderValidations.getById, asyncHandler(async (req, res) 
 router.get('/:id/pdf', orderValidations.getById, asyncHandler(async (req, res) => {
   const PDFBillService = require('../services/pdfService');
   const BusinessSettings = require('../models/BusinessSettings');
-  
+
   try {
     const { id } = req.params;
-    
+
     // Get order with services
     const result = await pool.query(`
       SELECT o.*, 
@@ -839,10 +839,10 @@ router.get('/:id/pdf', orderValidations.getById, asyncHandler(async (req, res) =
     }
 
     const order = result.rows[0];
-    
+
     // Get business settings for branding
     const businessSettings = await BusinessSettings.getCurrent();
-    
+
     // Prepare order data for PDF
     const orderData = {
       id: order.id,
@@ -870,10 +870,10 @@ router.get('/:id/pdf', orderValidations.getById, asyncHandler(async (req, res) =
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="bill-order-${order.id}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);
-    
+
     // Send PDF buffer
     res.send(pdfBuffer);
-    
+
   } catch (error) {
     if (error instanceof NotFoundError) {
       throw error;
